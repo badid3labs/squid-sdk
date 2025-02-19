@@ -1,19 +1,19 @@
-import {HttpAgent, HttpClient} from '@subsquid/http-client'
-import {createLogger, Logger} from '@subsquid/logger'
-import {RpcClient} from '@subsquid/rpc-client'
-import {assertNotNull, def, runProgram} from '@subsquid/util-internal'
-import {ArchiveClient} from '@subsquid/util-internal-archive-client'
-import {Database, getOrGenerateSquidId, PrometheusServer, Runner} from '@subsquid/util-internal-processor-tools'
-import {applyRangeBound, mergeRangeRequests, Range, RangeRequest} from '@subsquid/util-internal-range'
-import {cast} from '@subsquid/util-internal-validation'
+import { HttpAgent, HttpClient } from '@subsquid/http-client'
+import { createLogger, Logger } from '@subsquid/logger'
+import { RpcClient } from '@subsquid/rpc-client'
+import { assertNotNull, def, runProgram } from '@subsquid/util-internal'
+import { ArchiveClient } from '@subsquid/util-internal-archive-client'
+import { Database, getOrGenerateSquidId, PrometheusServer, Runner } from '@subsquid/util-internal-processor-tools'
+import { applyRangeBound, mergeRangeRequests, Range, RangeRequest } from '@subsquid/util-internal-range'
+import { cast } from '@subsquid/util-internal-validation'
 import assert from 'assert'
-import {EvmArchive} from './ds-archive/client'
-import {EvmRpcDataSource} from './ds-rpc/client'
-import {Chain} from './interfaces/chain'
-import {BlockData, DEFAULT_FIELDS, FieldSelection} from './interfaces/data'
-import {DataRequest, LogRequest, StateDiffRequest, TraceRequest, TransactionRequest} from './interfaces/data-request'
-import {getFieldSelectionValidator} from './mapping/selection'
-import {RpcValidationFlags} from './ds-rpc/rpc'
+import { EvmArchive } from './ds-archive/client'
+import { EvmRpcDataSource } from './ds-rpc/client'
+import { Chain } from './interfaces/chain'
+import { BlockData, DEFAULT_FIELDS, FieldSelection } from './interfaces/data'
+import { DataRequest, LogRequest, StateDiffRequest, TraceRequest, TransactionRequest } from './interfaces/data-request'
+import { getFieldSelectionValidator } from './mapping/selection'
+import { RpcValidationFlags } from './ds-rpc/rpc'
 
 
 export interface RpcEndpointSettings {
@@ -91,7 +91,7 @@ export interface RpcDataIngestionSettings {
     /**
      * Flags to switch off the data consistency checks
      */
-    validationFlags?: RpcValidationFlags 
+    validationFlags?: RpcValidationFlags
 }
 
 
@@ -213,7 +213,7 @@ export class EvmBatchProcessor<F extends FieldSelection = {}> {
     setGateway(url: string | GatewaySettings): this {
         this.assertNotRunning()
         if (typeof url == 'string') {
-            this.archive = {url}
+            this.archive = { url }
         } else {
             this.archive = url
         }
@@ -236,7 +236,7 @@ export class EvmBatchProcessor<F extends FieldSelection = {}> {
     setRpcEndpoint(url: string | RpcEndpointSettings | undefined): this {
         this.assertNotRunning()
         if (typeof url == 'string') {
-            this.rpcEndpoint = {url}
+            this.rpcEndpoint = { url }
         } else {
             this.rpcEndpoint = url
         }
@@ -285,7 +285,7 @@ export class EvmBatchProcessor<F extends FieldSelection = {}> {
     setChainPollInterval(ms: number): this {
         assert(ms >= 0)
         this.assertNotRunning()
-        this.rpcIngestSettings = {...this.rpcIngestSettings, headPollInterval: ms}
+        this.rpcIngestSettings = { ...this.rpcIngestSettings, headPollInterval: ms }
         return this
     }
 
@@ -294,7 +294,7 @@ export class EvmBatchProcessor<F extends FieldSelection = {}> {
      */
     preferTraceApi(yes?: boolean): this {
         this.assertNotRunning()
-        this.rpcIngestSettings = {...this.rpcIngestSettings, preferTraceApi: yes !== false}
+        this.rpcIngestSettings = { ...this.rpcIngestSettings, preferTraceApi: yes !== false }
         return this
     }
 
@@ -303,7 +303,7 @@ export class EvmBatchProcessor<F extends FieldSelection = {}> {
      */
     useDebugApiForStateDiffs(yes?: boolean): this {
         this.assertNotRunning()
-        this.rpcIngestSettings = {...this.rpcIngestSettings, useDebugApiForStateDiffs: yes !== false}
+        this.rpcIngestSettings = { ...this.rpcIngestSettings, useDebugApiForStateDiffs: yes !== false }
         return this
     }
 
@@ -314,7 +314,7 @@ export class EvmBatchProcessor<F extends FieldSelection = {}> {
      */
     useArchiveOnly(yes?: boolean): this {
         this.assertNotRunning()
-        this.rpcIngestSettings = {...this.rpcIngestSettings, disabled: yes !== false}
+        this.rpcIngestSettings = { ...this.rpcIngestSettings, disabled: yes !== false }
         return this
     }
 
@@ -339,7 +339,7 @@ export class EvmBatchProcessor<F extends FieldSelection = {}> {
 
     private add(request: DataRequest, range?: Range): void {
         this.requests.push({
-            range: range || {from: 0},
+            range: range || { from: 0 },
             request
         })
     }
@@ -354,7 +354,7 @@ export class EvmBatchProcessor<F extends FieldSelection = {}> {
      */
     includeAllBlocks(range?: Range): this {
         this.assertNotRunning()
-        this.add({includeAllBlocks: true}, range)
+        this.add({ includeAllBlocks: true }, range)
         return this
     }
 
@@ -445,11 +445,11 @@ export class EvmBatchProcessor<F extends FieldSelection = {}> {
             url: this.rpcEndpoint.url,
             headers: this.rpcEndpoint.headers,
             maxBatchCallSize: this.rpcEndpoint.maxBatchCallSize ?? 100,
-            requestTimeout:  this.rpcEndpoint.requestTimeout ?? 30_000,
+            requestTimeout: this.rpcEndpoint.requestTimeout ?? 30_000,
             capacity: this.rpcEndpoint.capacity ?? 10,
             rateLimit: this.rpcEndpoint.rateLimit,
             retryAttempts: this.rpcEndpoint.retryAttempts ?? Number.MAX_SAFE_INTEGER,
-            log: this.getLogger().child('rpc', {rpcUrl: this.rpcEndpoint.url})
+            log: this.getLogger().child('rpc', { rpcUrl: this.rpcEndpoint.url })
         })
         this.getPrometheusServer().addChainRpcMetrics(() => client.getMetrics())
         return client
@@ -479,7 +479,7 @@ export class EvmBatchProcessor<F extends FieldSelection = {}> {
             headPollInterval: this.rpcIngestSettings?.headPollInterval,
             newHeadTimeout: this.rpcIngestSettings?.newHeadTimeout,
             validationFlags: this.rpcIngestSettings?.validationFlags,
-            log: this.getLogger().child('rpc', {rpcUrl: this.getChainRpcClient().url})
+            log: this.getLogger().child('rpc', { rpcUrl: this.getChainRpcClient().url })
         })
     }
 
@@ -543,12 +543,12 @@ export class EvmBatchProcessor<F extends FieldSelection = {}> {
      *
      * @param handler - The data handler, see {@link DataHandlerContext} for an API available to the handler.
      */
-    run<Store>(database: Database<Store>, handler: (ctx: DataHandlerContext<Store, F>) => Promise<void>): void {
+    async run<Store>(database: Database<Store>, handler: (ctx: DataHandlerContext<Store, F>) => Promise<void>): Promise<void> {
         this.assertNotRunning()
         this.running = true
         let log = this.getLogger()
 
-        runProgram(async () => {
+        try {
             let chain = this.getChain()
             let mappingLog = log.child('mapping')
 
@@ -583,13 +583,15 @@ export class EvmBatchProcessor<F extends FieldSelection = {}> {
                     })
                 }
             }).run()
-        }, err => log.fatal(err))
+        } catch (err) {
+            throw err
+        }
     }
 }
 
 
 function mapRequest<T extends BlockRange>(options: T): Omit<T, 'range'> {
-    let {range, ...req} = options
+    let { range, ...req } = options
     for (let key in req) {
         let val = (req as any)[key]
         if (Array.isArray(val)) {
@@ -620,7 +622,7 @@ function addDefaultFields(fields?: FieldSelection): FieldSelection {
         transaction: mergeDefaultFields(DEFAULT_FIELDS.transaction, fields?.transaction),
         log: mergeDefaultFields(DEFAULT_FIELDS.log, fields?.log),
         trace: mergeDefaultFields(DEFAULT_FIELDS.trace, fields?.trace),
-        stateDiff: {...mergeDefaultFields(DEFAULT_FIELDS.stateDiff, fields?.stateDiff), kind: true}
+        stateDiff: { ...mergeDefaultFields(DEFAULT_FIELDS.stateDiff, fields?.stateDiff), kind: true }
     }
 }
 
@@ -634,7 +636,7 @@ function mergeDefaultFields<Props extends string>(
     defaults: Selector<Props>,
     selection?: Selector<Props>
 ): Selector<Props> {
-    let result: Selector<Props> = {...defaults}
+    let result: Selector<Props> = { ...defaults }
     for (let key in selection) {
         if (selection[key] != null) {
             if (selection[key]) {
